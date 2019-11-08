@@ -30,6 +30,8 @@ namespace GrKouk.Nop.Api.Controllers
         [HttpGet("ProductCodes")]
         public async Task<ActionResult<IEnumerable<CodeDto>>> GetProductCodes(string codeBase)
         {
+
+
             List<CodeDto> items;
             if (string.IsNullOrEmpty(codeBase))
             {
@@ -50,6 +52,25 @@ namespace GrKouk.Nop.Api.Controllers
             }
 
             return Ok(items);
+        }
+        [HttpGet("Codes")]
+        public async Task<ActionResult<IEnumerable<ProductListDto>>> GetProductsByCode(string codeBase)
+        {
+            var items = _context.Product
+                .Select(p => new ProductListDto
+                {
+                    Id = p.Id,
+                    Name = p.Name,
+                    Code = p.Sku
+                });
+
+            if (!String.IsNullOrEmpty(codeBase))
+            {
+                items = items.Where(p => p.Code.Contains(codeBase));
+            }
+            var listItems = await items.OrderByDescending(p => p.Code).ToListAsync();
+           
+            return Ok(listItems);
         }
         // GET: api/Products/5
         [HttpGet("{id}")]
