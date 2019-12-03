@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using GrKouk.Nop.Api.Dtos;
@@ -7,6 +8,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using GrKouk.Nop.Api.Models;
+using Newtonsoft.Json;
 
 namespace GrKouk.Nop.Api.Controllers
 {
@@ -14,18 +16,18 @@ namespace GrKouk.Nop.Api.Controllers
     [ApiController]
     public class ProductsController : ControllerBase
     {
-        private readonly ApiDbContext _context;
+        private readonly ApiDbHandmadeContext _handmadeContext;
 
-        public ProductsController(ApiDbContext context)
+        public ProductsController(ApiDbHandmadeContext handmadeContext)
         {
-            _context = context;
+            _handmadeContext = handmadeContext;
         }
 
         // GET: api/Products
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Product>>> GetProduct()
         {
-            return await _context.Product.ToListAsync();
+            return await _handmadeContext.Product.ToListAsync();
         }
         [HttpGet("ProductCodes")]
         public async Task<ActionResult<IEnumerable<CodeDto>>> GetProductCodes(string codeBase)
@@ -35,7 +37,7 @@ namespace GrKouk.Nop.Api.Controllers
             List<CodeDto> items;
             if (string.IsNullOrEmpty(codeBase))
             {
-                items = await _context.Product.OrderByDescending(p=>p.Sku)
+                items = await _handmadeContext.Product.OrderByDescending(p => p.Sku)
                     .Select(t => new CodeDto
                     {
                         Code = t.Sku
@@ -43,8 +45,8 @@ namespace GrKouk.Nop.Api.Controllers
             }
             else
             {
-                items = await _context.Product.Where(p => p.Sku.Contains(codeBase))
-                    .OrderByDescending(p=>p.Sku)
+                items = await _handmadeContext.Product.Where(p => p.Sku.Contains(codeBase))
+                    .OrderByDescending(p => p.Sku)
                     .Select(t => new CodeDto
                     {
                         Code = t.Sku
@@ -56,7 +58,7 @@ namespace GrKouk.Nop.Api.Controllers
         [HttpGet("Codes")]
         public async Task<ActionResult<IEnumerable<ProductListDto>>> GetProductsByCode(string codeBase)
         {
-            var items = _context.Product
+            var items = _handmadeContext.Product
                 .Select(p => new ProductListDto
                 {
                     Id = p.Id,
@@ -69,14 +71,14 @@ namespace GrKouk.Nop.Api.Controllers
                 items = items.Where(p => p.Code.Contains(codeBase));
             }
             var listItems = await items.OrderByDescending(p => p.Code).ToListAsync();
-           
+
             return Ok(listItems);
         }
         // GET: api/Products/5
         [HttpGet("{id}")]
         public async Task<ActionResult<Product>> GetProduct(int id)
         {
-            var product = await _context.Product.FindAsync(id);
+            var product = await _handmadeContext.Product.FindAsync(id);
 
             if (product == null)
             {
@@ -86,6 +88,47 @@ namespace GrKouk.Nop.Api.Controllers
             return product;
         }
 
+        [HttpGet("ProductAttributeMappings")]
+        public async Task<ActionResult<IEnumerable<ProductProductAttributeMapping>>> GetProductAttrMappings(int productId)
+        {
+            var productAttrMappings = await _handmadeContext.ProductProductAttributeMapping
+                //.Include(p=>p.Product)
+                //.Include(p=>p.ProductAttributeValue)
+                .Where(p => p.ProductId == productId)
+                .ToListAsync();
+            if (productAttrMappings == null)
+            {
+                return Ok();
+            }
+            return Ok(productAttrMappings);
+        }
+        [HttpGet("ProductAttributeValues")]
+        public async Task<ActionResult<IEnumerable<ProductAttributeValue>>> GetProductAttrValues(int productId)
+        {
+            var productAttrMappings = await _handmadeContext.ProductProductAttributeMapping
+               .Where(p => p.ProductId == productId)
+                .ToListAsync();
+            if (productAttrMappings == null)
+            {
+                return Ok();
+            }
+
+            List<ProductAttributeValue> productAttrValueList = new List<ProductAttributeValue>();
+
+            foreach (var prodAttrMapping in productAttrMappings)
+            {
+                var prAttrValue = await _handmadeContext.ProductAttributeValue
+                    .Where(p => p.ProductAttributeMappingId == prodAttrMapping.Id)
+                    .ToListAsync();
+                foreach (var productAttributeValue in prAttrValue)
+                {
+                    productAttrValueList.Add(productAttributeValue);
+                }
+            }
+
+
+            return Ok(productAttrValueList);
+        }
         // PUT: api/Products/5
         [HttpPut("{id}")]
         public async Task<IActionResult> PutProduct(int id, Product product)
@@ -95,11 +138,11 @@ namespace GrKouk.Nop.Api.Controllers
                 return BadRequest();
             }
 
-            _context.Entry(product).State = EntityState.Modified;
+            _handmadeContext.Entry(product).State = EntityState.Modified;
 
             try
             {
-                await _context.SaveChangesAsync();
+                await _handmadeContext.SaveChangesAsync();
             }
             catch (DbUpdateConcurrencyException)
             {
@@ -120,8 +163,8 @@ namespace GrKouk.Nop.Api.Controllers
         [HttpPost]
         public async Task<ActionResult<Product>> PostProduct(Product product)
         {
-            _context.Product.Add(product);
-            await _context.SaveChangesAsync();
+            _handmadeContext.Product.Add(product);
+            await _handmadeContext.SaveChangesAsync();
 
             return CreatedAtAction("GetProduct", new { id = product.Id }, product);
         }
@@ -130,21 +173,21 @@ namespace GrKouk.Nop.Api.Controllers
         [HttpDelete("{id}")]
         public async Task<ActionResult<Product>> DeleteProduct(int id)
         {
-            var product = await _context.Product.FindAsync(id);
+            var product = await _handmadeContext.Product.FindAsync(id);
             if (product == null)
             {
                 return NotFound();
             }
 
-            _context.Product.Remove(product);
-            await _context.SaveChangesAsync();
+            _handmadeContext.Product.Remove(product);
+            await _handmadeContext.SaveChangesAsync();
 
             return product;
         }
 
         private bool ProductExists(int id)
         {
-            return _context.Product.Any(e => e.Id == id);
+            return _handmadeContext.Product.Any(e => e.Id == id);
         }
     }
 }

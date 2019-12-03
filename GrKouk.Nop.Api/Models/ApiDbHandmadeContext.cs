@@ -4,13 +4,13 @@ using Microsoft.EntityFrameworkCore.Metadata;
 
 namespace GrKouk.Nop.Api.Models
 {
-    public partial class ApiDbContext : DbContext
+    public partial class ApiDbHandmadeContext : DbContext
     {
-        public ApiDbContext()
+        public ApiDbHandmadeContext()
         {
         }
 
-        public ApiDbContext(DbContextOptions<ApiDbContext> options)
+        public ApiDbHandmadeContext(DbContextOptions<ApiDbHandmadeContext> options)
             : base(options)
         {
         }
