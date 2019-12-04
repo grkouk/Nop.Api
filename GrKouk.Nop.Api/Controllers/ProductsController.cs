@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
+using AutoMapper;
 using GrKouk.Nop.Api.Dtos;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -17,10 +18,12 @@ namespace GrKouk.Nop.Api.Controllers
     public class ProductsController : ControllerBase
     {
         private readonly ApiDbHandmadeContext _handmadeContext;
+        private IMapper _mapper;
 
-        public ProductsController(ApiDbHandmadeContext handmadeContext)
+        public ProductsController(ApiDbHandmadeContext handmadeContext, IMapper mapper)
         {
             _handmadeContext = handmadeContext;
+            _mapper = mapper;
         }
 
         // GET: api/Products
@@ -126,8 +129,8 @@ namespace GrKouk.Nop.Api.Controllers
                 }
             }
 
-
-            return Ok(productAttrValueList);
+            var valueResponse = _mapper.Map<ProductAttributeValueDto>(productAttrValueList);
+            return Ok(valueResponse);
         }
         // PUT: api/Products/5
         [HttpPut("{id}")]
