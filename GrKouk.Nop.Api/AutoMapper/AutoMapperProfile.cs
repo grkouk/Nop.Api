@@ -13,6 +13,8 @@ namespace GrKouk.Nop.Api.AutoMapper
         public AutoMapperProfile()
         {
             CreateMap<ProductAttributeValue, ProductAttributeValueDto>();
+            CreateMap<ProductAttributeCombination, ProductAttributeCombinationDto>();
+            
         }
     }
 }

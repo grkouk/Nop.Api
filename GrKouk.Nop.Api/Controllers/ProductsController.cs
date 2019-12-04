@@ -132,6 +132,20 @@ namespace GrKouk.Nop.Api.Controllers
             var valueResponse = _mapper.Map<IEnumerable<ProductAttributeValueDto>>(productAttrValueList);
             return Ok(valueResponse);
         }
+
+        [HttpGet("ProductAttributeCombinations")]
+        public async Task<ActionResult<IEnumerable<ProductAttributeCombinationDto>>> GetProductAttrCombinations(int productId)
+        {
+            var prAttrComb = await _handmadeContext.ProductAttributeCombination
+                .Where(p => p.ProductId == productId)
+                .ToListAsync();
+            if (prAttrComb == null)
+            {
+                return Ok();
+            }
+            var valueResponse = _mapper.Map<IEnumerable<ProductAttributeCombinationDto>>(prAttrComb);
+            return Ok(valueResponse);
+        }
         // PUT: api/Products/5
         [HttpPut("{id}")]
         public async Task<IActionResult> PutProduct(int id, Product product)
