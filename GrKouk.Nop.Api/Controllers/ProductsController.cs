@@ -129,7 +129,7 @@ namespace GrKouk.Nop.Api.Controllers
                 }
             }
 
-            var valueResponse = _mapper.Map<ProductAttributeValueDto>(productAttrValueList);
+            var valueResponse = _mapper.Map<IEnumerable<ProductAttributeValueDto>>(productAttrValueList);
             return Ok(valueResponse);
         }
         // PUT: api/Products/5
