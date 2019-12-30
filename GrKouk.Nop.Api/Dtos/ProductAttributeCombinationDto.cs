@@ -1,6 +1,6 @@
 ﻿namespace GrKouk.Nop.Api.Models
 {
-    public partial class ProductAttributeCombination
+    public partial class ProductAttributeCombinationDto
     {
         public int Id { get; set; }
         public int ProductId { get; set; }
@@ -13,7 +13,6 @@
         public decimal? OverriddenPrice { get; set; }
         public int NotifyAdminForQuantityBelow { get; set; }
         public int PictureId { get; set; }
-
-        public virtual Product Product { get; set; }
+       
     }
 }
